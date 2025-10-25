@@ -10,16 +10,16 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ### Chunk 1.1: Project Scaffolding & Version Control
 
-- [ ] Initialize a new Git repository (`git init`).
-- [ ] Create the top-level directory structure (`airflow/`, `kafka_producer/`, `ml/`, `src/utils/`, `tests/`, `data/`, `docs/`, `visualization/`).
-- [ ] Add placeholder `.gitkeep` files to empty directories to ensure they are tracked by Git.
-- [ ] Create and initialize the `pyproject.toml` file.
-- [ ] Create an initial `README.md` with a project overview.
-- [ ] Create a standard Python `.gitignore` file.
+- [X] Initialize a new Git repository (`git init`).
+- [X] Create the top-level directory structure (`airflow/`, `kafka_producer/`, `ml/`, `src/utils/`, `tests/`, `data/`, `docs/`, `visualization/`).
+- [X] Add placeholder `.gitkeep` files to empty directories to ensure they are tracked by Git.
+- [X] Create and initialize the `pyproject.toml` file.
+- [X] Create an initial `README.md` with a project overview.
+- [X] Create a standard Python `.gitignore` file.
 
 ### Chunk 1.2: Core Services Orchestration
 
-- [ ] Create the `docker-compose.yml` file.
+- [X] Create the `docker-compose.yml` file.
 - [ ] Add the PostgreSQL service, including volume for data persistence and environment variables for credentials.
 - [ ] Add Zookeeper and Kafka services, ensuring they are on the same Docker network.
 - [ ] Add the MLflow tracking server service.
@@ -29,11 +29,11 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ### Chunk 1.3: Automation & Dependency Management
 
-- [ ] Create the `Makefile`.
-- [ ] Add initial dependencies to `pyproject.toml`: `pydantic`, `ruff`, `mypy`.
-- [ ] Implement `make sync` command in the Makefile (`uv sync`).
-- [ ] Implement `make qa` command (`ruff check . && mypy .`).
-- [ ] Add basic Docker Compose commands to the Makefile: `make up`, `make down`, `make logs`.
+- [X] Create the `Makefile`.
+- [X] Add initial dependencies to `pyproject.toml`: `pydantic`, `ruff`, `mypy`.
+- [X] Implement `make sync` command in the Makefile (`uv sync`).
+- [X] Implement `make qa` command (`ruff check . && mypy .`).
+- [X] Add basic Docker Compose commands to the Makefile: `make up`, `make down`, `make logs`.
 
 ### Chunk 1.4: Base Utilities & Configuration
 
@@ -49,8 +49,8 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ### Chunk 2.1: Real-Time Data Producer
 
-- [ ] Add `kafka-python` to `pyproject.toml` and run `make sync`.
-- [ ] Create the producer script (`kafka_producer/producer.py`).
+- [X] Add `kafka-python` to `pyproject.toml` and run `make sync`.
+- [X] Create the producer script (`kafka_producer/producer.py`).
 - [ ] Implement Kafka connection logic using the config utility.
 - [ ] Write a function to generate a valid traffic event based on the Pydantic schema.
 - [ ] Create a main loop to send events to the `traffic_raw` Kafka topic.
