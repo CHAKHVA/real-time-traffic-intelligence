@@ -214,3 +214,10 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Python / uv
+__pycache__/
+*.pyc
+.uv/
+.venv/
+uv.lock
