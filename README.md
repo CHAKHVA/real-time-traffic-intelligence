@@ -1,4 +1,4 @@
-# Real-Time Traffic Intelligence Hub
+# Real-Time Traffic Intelligence
 
 A complete **data engineering + machine learning platform** that continuously ingests traffic data (batch + streaming), predicts congestion, and provides a live analytics dashboard — built with modern open-source tools.
 
@@ -131,56 +131,6 @@ def test_healthcheck(client):
 - **Formatting, Linting, Imports** → `Ruff`
 - **Static Typing** → `Mypy`
 - **Test Coverage** → `pytest-cov`
-- **Automation** → `Makefile` targets + optional pre-commit hooks
-
-Install pre-commit (optional):
-
-```bash
-uv run pre-commit install
-```
+- **Automation** → `Makefile` targets
 
 ---
-
-## Repository Overview
-
-```text
-traffic-intelligence-hub/
-├── airflow/                 # Batch DAGs & orchestration
-├── kafka_producer/          # Simulated IoT traffic data stream
-├── spark_streaming/         # Real-time stream processor
-├── ml/                      # ML pipelines and model serving
-├── visualization/           # Streamlit + Plotly dashboard
-├── src/utils/               # Helpers (logging, config, IO)
-├── tests/                   # Unit + integration tests
-├── docs/                    # Extra documentation
-├── data/                    # Raw & processed datasets
-├── docker-compose.yml       # Local stack definition
-├── Makefile                 # Dev automation
-├── pyproject.toml           # uv + tooling config
-└── README.md
-```
-
----
-
-## Key Docs
-
-- [`docs/architecture.md`](docs/architecture.md) – system components, data flow, dependencies
-- [`docs/contributing.md`](docs/contributing.md) – dev workflow & team conventions
-
----
-
-## Team Guidelines
-
-- Always use `make qa && make test` before committing.
-- Open PRs off `main`, merge via review to `main`.
-- Don't commit `.env` or local data files.
-
----
-
-## Collaboration Notes
-
-- Use feature branches: `feat/<name>` or `fix/<name>`
-- Always run tests before committing
-- Never commit `.venv` or `.env` files.
-- Update `README.md` if dependencies or key commands change.
-

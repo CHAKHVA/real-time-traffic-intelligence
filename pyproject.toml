@@ -1,7 +1,7 @@
 [project]
 name = "real-time-traffic-intelligence"
 version = "0.1.0"
-description = "Add your description here"
+description = "Real‑time traffic intelligence hub combining data pipelines, ML model training, and interactive dashboards with FastAPI and Streamlit."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
