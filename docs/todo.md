@@ -4,11 +4,11 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ---
 
-### Phase 1: Foundational Setup & Environment
+## Phase 1: Foundational Setup & Environment
 
 **Goal:** Establish a stable, reproducible development environment.
 
-**Chunk 1.1: Project Scaffolding & Version Control**
+### Chunk 1.1: Project Scaffolding & Version Control
 
 - [ ] Initialize a new Git repository (`git init`).
 - [ ] Create the top-level directory structure (`airflow/`, `kafka_producer/`, `ml/`, `src/utils/`, `tests/`, `data/`, `docs/`, `visualization/`).
@@ -17,7 +17,7 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Create an initial `README.md` with a project overview.
 - [ ] Create a standard Python `.gitignore` file.
 
-**Chunk 1.2: Core Services Orchestration**
+### Chunk 1.2: Core Services Orchestration
 
 - [ ] Create the `docker-compose.yml` file.
 - [ ] Add the PostgreSQL service, including volume for data persistence and environment variables for credentials.
@@ -27,7 +27,7 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Configure MLflow to use a local volume for storing artifacts.
 - [ ] Verify that `docker compose up -d` starts all services without errors.
 
-**Chunk 1.3: Automation & Dependency Management**
+### Chunk 1.3: Automation & Dependency Management
 
 - [ ] Create the `Makefile`.
 - [ ] Add initial dependencies to `pyproject.toml`: `pydantic`, `ruff`, `mypy`.
@@ -35,7 +35,7 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Implement `make qa` command (`ruff check . && mypy .`).
 - [ ] Add basic Docker Compose commands to the Makefile: `make up`, `make down`, `make logs`.
 
-**Chunk 1.4: Base Utilities & Configuration**
+### Chunk 1.4: Base Utilities & Configuration
 
 - [ ] Create a configuration management file (`src/utils/config.py`) to load settings from environment variables.
 - [ ] Implement a standardized logging utility (`src/utils/logging_utils.py`) for structured logging.
@@ -43,11 +43,11 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ---
 
-### Phase 2: Data Ingestion & Storage
+## Phase 2: Data Ingestion & Storage
 
 **Goal:** Get data flowing into the system and stored correctly.
 
-**Chunk 2.1: Real-Time Data Producer**
+### Chunk 2.1: Real-Time Data Producer
 
 - [ ] Add `kafka-python` to `pyproject.toml` and run `make sync`.
 - [ ] Create the producer script (`kafka_producer/producer.py`).
@@ -56,14 +56,14 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Create a main loop to send events to the `traffic_raw` Kafka topic.
 - [ ] Add `make producer` command to the Makefile.
 
-**Chunk 2.2: Initial Database Setup**
+### Chunk 2.2: Initial Database Setup
 
 - [ ] Add `psycopg2-binary` and `sqlalchemy` to `pyproject.toml` and run `make sync`.
 - [ ] Create a database initialization script (`src/utils/init_db.py`).
 - [ ] Define the table schema for `processed_traffic_data` in the script.
 - [ ] Add a `make init-db` command to the Makefile to execute the script.
 
-**Chunk 2.3: Simple Stream Processor**
+### Chunk 2.3: Simple Stream Processor
 
 - [ ] Add `pyspark` to `pyproject.toml` and run `make sync`.
 - [ ] Create the Spark streaming script (`spark_streaming/stream_processor.py`).
@@ -75,18 +75,18 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ---
 
-### Phase 3: End-to-End Data Flow
+## Phase 3: End-to-End Data Flow
 
 **Goal:** Connect components to create a complete, simple streaming pipeline.
 
-**Chunk 3.1: Persisting Streamed Data**
+### Chunk 3.1: Persisting Streamed Data
 
 - [ ] Modify the Spark job to write to the PostgreSQL `processed_traffic_data` table instead of the console.
 - [ ] Add schema validation and null-value filtering to the Spark job.
 - [ ] Implement a 5-minute tumbling window aggregation (avg_speed, vehicle_count).
 - [ ] Run the full flow (`make up`, `make init-db`, `make producer`, `make stream`) and verify data appears in PostgreSQL.
 
-**Chunk 3.2: Batch Ingestion with Airflow**
+### Chunk 3.2: Batch Ingestion with Airflow
 
 - [ ] Add `apache-airflow` to `pyproject.toml` and `make sync`.
 - [ ] Add an Airflow service (webserver, scheduler) to `docker-compose.yml`, using the existing PostgreSQL as a backend.
@@ -95,7 +95,7 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Implement a task to read historical data from a local CSV file.
 - [ ] Implement a task to cleanse the data and append it to a `historical_traffic_data` table in PostgreSQL.
 
-**Chunk 3.3: Dead-Letter Queue (DLQ) for Error Handling**
+### Chunk 3.3: Dead-Letter Queue (DLQ) for Error Handling
 
 - [ ] In the Spark job, add error handling for JSON parsing.
 - [ ] On parsing failure, write the malformed event to a `traffic_dlq` Kafka topic.
@@ -104,11 +104,11 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ---
 
-### Phase 4: Machine Learning Integration
+## Phase 4: Machine Learning Integration
 
 **Goal:** Build, train, and track the predictive model.
 
-**Chunk 4.1: Feature Engineering**
+### Chunk 4.1: Feature Engineering
 
 - [ ] Add `scikit-learn`, `xgboost`, and `mlflow` to `pyproject.toml`.
 - [ ] Create the feature engineering script (`ml/feature_engineering.py`).
@@ -116,7 +116,7 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Implement functions to create features (rolling means, time-based flags).
 - [ ] Write the final features to a `feature_store` table in PostgreSQL.
 
-**Chunk 4.2: Model Training & Tracking**
+### Chunk 4.2: Model Training & Tracking
 
 - [ ] Create the model training script (`ml/train_model.py`).
 - [ ] Implement logic to read from the `feature_store` table.
@@ -125,7 +125,7 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Train an `XGBoostRegressor` model.
 - [ ] Log the trained model to MLflow as a scikit-learn artifact.
 
-**Chunk 4.3: Automating Retraining with Airflow**
+### Chunk 4.3: Automating Retraining with Airflow
 
 - [ ] Create a weekly model retraining DAG (`airflow/dags/model_retraining_dag.py`).
 - [ ] Add a task to run the feature engineering script.
@@ -134,11 +134,11 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ---
 
-### Phase 5: Serving & Visualization
+## Phase 5: Serving & Visualization
 
 **Goal:** Make the system's intelligence accessible to end-users.
 
-**Chunk 5.1: Prediction API**
+### Chunk 5.1: Prediction API
 
 - [ ] Add `fastapi` and `uvicorn` to `pyproject.toml`.
 - [ ] Create the FastAPI application (`ml/predict_service/main.py`).
@@ -147,7 +147,7 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Implement the `/predict` endpoint with Pydantic schemas for request/response validation.
 - [ ] Add a `make api` command to the Makefile.
 
-**Chunk 5.2: Interactive Dashboard**
+### Chunk 5.2: Interactive Dashboard
 
 - [ ] Add `streamlit` and `plotly` to `pyproject.toml`.
 - [ ] Create the Streamlit dashboard script (`visualization/dashboard.py`).
@@ -159,11 +159,11 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ---
 
-### Phase 6: Testing & CI/CD
+## Phase 6: Testing & CI/CD
 
 **Goal:** Ensure the system is robust, reliable, and maintainable.
 
-**Chunk 6.1: Unit & Integration Testing**
+### Chunk 6.1: Unit & Integration Testing
 
 - [ ] Add `pytest` and `pytest-cov` to `pyproject.toml`.
 - [ ] Write unit tests for utility functions and feature engineering logic (`tests/`).
@@ -172,14 +172,14 @@ This checklist breaks down the entire project into actionable steps, following t
 - [ ] Implement the `make test` command to run `pytest --cov`.
 - [ ] Ensure test coverage meets or exceeds the 85% goal.
 
-**Chunk 6.2: CI/CD Pipeline**
+### Chunk 6.2: CI/CD Pipeline
 
 - [ ] Create the GitHub Actions workflow file (`.github/workflows/ci.yml`).
 - [ ] Define a job that triggers on `push` and `pull_request`.
 - [ ] Add steps for: checkout, setup Python with `uv`, `make sync`, `make qa`, `make test`.
 - [ ] (Optional) Add a step to upload code coverage results.
 
-**Chunk 6.3: Documentation & Finalization**
+### Chunk 6.3: Documentation & Finalization
 
 - [ ] Update `README.md` with complete setup and usage instructions.
 - [ ] Add architecture diagrams and contribution guidelines to the `docs/` folder.

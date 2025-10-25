@@ -1,8 +1,8 @@
-# **Real-Time Traffic Intelligence Hub — Engineering Specification**
+# Real-Time Traffic Intelligence Hub — Engineering Specification
 
 ---
 
-### **1. 📘 Overview**
+## 1. Overview
 
 The Real-Time Traffic Intelligence Hub is an end-to-end data engineering and machine learning system that ingests live (Kafka) and historical (batch) traffic data, processes it through scalable Spark and Airflow pipelines, trains models with MLflow tracking, serves predictions through FastAPI, and visualizes them in a Streamlit dashboard.
 
@@ -10,7 +10,7 @@ This document defines requirements, architecture decisions, data handling, error
 
 ---
 
-### **2. 🎯 Goals**
+## 2. Goals
 
 - Collect and process both real-time sensor and historical traffic data.
 - Build a resilient streaming + batch infrastructure (Lambda architecture).
@@ -20,7 +20,7 @@ This document defines requirements, architecture decisions, data handling, error
 
 ---
 
-### **3. 🧱 Core Components**
+## 3. Core Components
 
 | Layer                 | Responsibilities                              | Key Tech                             |
 | :-------------------- | :-------------------------------------------- | :----------------------------------- |
@@ -35,7 +35,7 @@ This document defines requirements, architecture decisions, data handling, error
 
 ---
 
-### **4. ⚙️ Architectural Overview**
+## 4. Architectural Overview
 
 ```
 ┌────────────────────┐
@@ -82,7 +82,7 @@ This document defines requirements, architecture decisions, data handling, error
 
 ---
 
-### **5. 📦 Environment & Build**
+## 5. Environment & Build
 
 | Tool               | Purpose                             |
 | :----------------- | :---------------------------------- |
@@ -98,6 +98,7 @@ This document defines requirements, architecture decisions, data handling, error
 - **Target:** Python 3.11
 - **Environment managed via:** `uv`
 - **Entry commands:**
+
   ```bash
   make sync          # install deps
   make qa            # lint + type check
@@ -109,9 +110,9 @@ This document defines requirements, architecture decisions, data handling, error
 
 ---
 
-### **6. 🗃️ Data Handling Strategy**
+## 6. Data Handling Strategy
 
-#### **6.1 Data Sources**
+### 6.1 Data Sources
 
 | Type          | Dataset                            | Usage                          |
 | :------------ | :--------------------------------- | :----------------------------- |
@@ -119,7 +120,7 @@ This document defines requirements, architecture decisions, data handling, error
 | **Offline**   | NYC DOT Traffic Volume (2014-2019) | Replay + training baseline     |
 | **Auxiliary** | NOAA Weather, Accident data        | Enrichment for model features  |
 
-#### **6.2 Event Schema**
+### 6.2 Event Schema
 
 All streaming/batch data is normalized to the following schema. Pydantic validation (`src/schemas/traffic_event.py`) guarantees integrity.
 
@@ -135,7 +136,7 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 }
 ```
 
-#### **6.3 Storage Strategy**
+### 6.3 Storage Strategy
 
 | Layer                | System                                         | Format                |
 | :------------------- | :--------------------------------------------- | :-------------------- |
@@ -145,7 +146,7 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 | **Features**         | PostgreSQL (`feature_store`)                   | numeric + categorical |
 | **Models**           | MLflow artifacts                               | pickle / pyfunc       |
 
-#### **6.4 Transformation Pipeline**
+### 6.4 Transformation Pipeline
 
 **Streaming (Spark Job):**
 
@@ -164,7 +165,7 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 
 ---
 
-### **7. 📊 Machine Learning Details**
+## 7. Machine Learning Details
 
 | Aspect             | Choice                                                              |
 | :----------------- | :------------------------------------------------------------------ |
@@ -178,7 +179,7 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 
 ---
 
-### **8. 🧩 Model Serving (FastAPI)**
+## 8. Model Serving (FastAPI)
 
 | Endpoint     | Method | Purpose                              |
 | :----------- | :----- | :----------------------------------- |
@@ -216,11 +217,10 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 
 ---
 
-### **9. 🎨 Visualization Layer**
+## 9. Visualization Layer
 
 - **Streamlit Dashboard (`visualization/dashboard.py`):**
   - Live KPIs (Avg Speed, Congestion Index)
-  - Interactive map colored by speed (Plotly + Mapbox)
   - Historical trend chart
   - Manual prediction trigger
 - **Data Sources:**
@@ -229,7 +229,7 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 
 ---
 
-### **10. 🧮 Error & Failure Handling**
+## 10. Error & Failure Handling
 
 | Layer              | Failure Type                | Strategy                                    |
 | :----------------- | :-------------------------- | :------------------------------------------ |
@@ -247,7 +247,7 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 
 ---
 
-### **11. 🧪 Testing Plan**
+## 11. Testing Plan
 
 | Category             | Tools                       | Example Scope                                  |
 | :------------------- | :-------------------------- | :--------------------------------------------- |
@@ -268,7 +268,7 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 
 ---
 
-### **12. 🧠 Data Quality Controls**
+## 12. Data Quality Controls
 
 | Control                   | Mechanism                             |
 | :------------------------ | :------------------------------------ |
@@ -280,16 +280,14 @@ All streaming/batch data is normalized to the following schema. Pydantic validat
 
 ---
 
-### **13. 🧰 Observability & Monitoring**
+## 13. Observability & Monitoring
 
 - **Logging:** Structured with timestamps and service names.
-- **Metrics:** Exposed at `/metrics` for Prometheus.
-- **Dashboards:** Optional Grafana (for Kafka lag, API latency).
 - **Health Checks:** `HTTP 200` from `/health` in API & Airflow sensors.
 
 ---
 
-### **14. 💻 Local Development Flow**
+## 14. Local Development Flow
 
 ```bash
 # 1. Start all infrastructure services in the background
@@ -310,7 +308,7 @@ make qa && make test
 
 ---
 
-### **15. 📁 Folder Structure**
+## 15. Folder Structure
 
 ```
 traffic-intelligence-hub/
@@ -336,19 +334,17 @@ traffic-intelligence-hub/
 
 ---
 
-### **16. 🚀 Deployment Strategy**
+## 16. Deployment Strategy
 
-| Environment         | Strategy                                          |
-| :------------------ | :------------------------------------------------ |
-| **Local Dev**       | Docker Compose stack                              |
-| **Staging**         | Container images → Cloud VM (EC2 / GCP Compute)   |
-| **Prod (optional)** | Kubernetes deployment (Helm chart)                |
-| **Monitoring**      | Prometheus + Grafana                              |
-| **Rollback**        | MLflow model version rollback + `compose down/up` |
+| Environment    | Strategy                                          |
+| :------------- | :------------------------------------------------ |
+| **Local Dev**  | Docker Compose stack                              |
+| **Production** | Container images → Cloud VM (EC2)                 |
+| **Rollback**   | MLflow model version rollback + `compose down/up` |
 
 ---
 
-### **17. ✅ Acceptance Criteria**
+## 17. Acceptance Criteria
 
 - End-to-end data pipeline flows successfully (Kafka → DB → MLflow → API → Dashboard).
 - Model registry contains at least one "Production" model.
@@ -356,14 +352,3 @@ traffic-intelligence-hub/
 - Dashboard visualizes live and forecast values.
 - CI pipeline passes; test coverage ≥ 85%.
 - Developer onboarding takes < 30 minutes using the README.
-
----
-
-### **18. 🧩 Future Extensions**
-
-- Add real-time alerting for congestion anomalies.
-- Scale Spark jobs cluster-wide (e.g., AWS EMR / Dataproc).
-- Integrate dedicated feature-store systems (e.g., Feast / Hopsworks).
-- Deploy models via MLflow's Docker registry on Kubernetes.
-- Add authentication and role-based access to the API.
-- Use a stream-to-stream join with weather topics for richer ML context.
