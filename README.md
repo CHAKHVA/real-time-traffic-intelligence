@@ -1,233 +1,186 @@
-# 🛣️ Real-Time Traffic Intelligence Hub
+# Real-Time Traffic Intelligence Hub
 
-A data engineering and machine learning platform that ingests streaming and batch traffic data, predicts congestion, and visualizes live road analytics.
+A complete **data engineering + machine learning platform** that continuously ingests traffic data (batch + streaming), predicts congestion, and provides a live analytics dashboard — built with modern open-source tools.
 
 ---
 
-## 🚀 Quick Start — Environment Setup (using `uv`)
+## Tech Stack
 
-This project uses [`uv`](https://docs.astral.sh/uv/) for Python environment + dependency management.
+| Domain                    | Tools                                                        |
+| ------------------------- | ------------------------------------------------------------ |
+| **Language & Env**        | Python 3.11 (managed via [`uv`](https://docs.astral.sh/uv/)) |
+| **Streaming**             | Apache Kafka, Spark Structured Streaming                     |
+| **Batch / Orchestration** | Apache Airflow                                               |
+| **Storage**               | PostgreSQL, S3 (data lake)                                   |
+| **ML**                    | scikit-learn, XGBoost, MLflow                                |
+| **Serving / API**         | FastAPI                                                      |
+| **Visualization**         | Streamlit                                                    |
+| **Infra / DevOps**        | Docker Compose, Ruff, Mypy, pytest, Makefile                 |
 
-### 1️⃣ Install uv
+---
+
+## Quick Setup Guide
+
+### Install `uv`
+
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-After installing, check:
-```bash
 uv --version
 ```
 
 ---
 
-### 2️⃣ Clone the Repository
-```bash
-git clone https://github.com/<your-org>/traffic-intelligence-hub.git
-cd traffic-intelligence-hub
-```
-
----
-
-### 3️⃣ Set Up Python & Environment
-Target version: **Python 3.11** (stable for ML + Airflow + PySpark)
+### Clone & Setup Environment
 
 ```bash
+git clone https://github.com/CHAKHVA/real-time-traffic-intelligence.git
+cd real-time-traffic-intelligence
+
+# Pin compatible Python version (3.11)
 uv python install 3.11
 uv python pin 3.11
+
+# Sync all dependencies
+make sync
 ```
 
 ---
 
-### 4️⃣ Sync Dependencies
-All dependencies are defined in `pyproject.toml` and locked via `uv.lock`.
+### Configure Environment Variables
+
+Duplicate `.env.example` → `.env`, then adjust credentials as needed:
 
 ```bash
-uv sync
-```
-
-This creates a reproducible virtual environment inside `.venv/`.
-
-You can now run commands with:
-```bash
-uv run python
-```
-
-or activate interactively:
-```bash
-eval $(uv activate)
+cp .env.example .env
 ```
 
 ---
 
-### 5️⃣ Verify Setup
-Run a quick import check:
-```bash
-uv run python -c "import pandas, pyspark, mlflow, fastapi, streamlit; print('✅ Environment ready!')"
-```
+### Start Local Infrastructure
 
----
-
-## 🧩 Standard Workflow
-
-| Task | Command | Description |
-|------|----------|-------------|
-| Install new library | `uv add <package>` | Adds and locks dependency |
-| Add dev-only package | `uv add --dev <package>` | Linters, test libs |
-| Start API locally | `uv run fastapi dev` | Serve FastAPI endpoints |
-| Run Streamlit dashboard | `uv run streamlit run visualization/dashboard.py` | Visualization UI |
-| Run tests | `uv run pytest -v` | Unit/integration tests |
-| Format code | `uv run black .` | Ensure consistent styling |
-
----
-
-## 🗂️ Included Components
-- **Kafka Producer** → generates synthetic traffic data streams  
-- **Spark Streaming Job** → real-time ingestion + processing  
-- **Airflow DAGs** → batch ingestion & feature builds  
-- **ML / FastAPI Service** → model inference + REST endpoints  
-- **Streamlit Dashboard** → live traffic visualization  
-
----
-
-## 🔧 Troubleshooting
-
-| Issue | Possible Fix |
-|--------|----------------|
-| Missing wheel or compile fail | Ensure Python 3.11, rerun `uv sync` |
-| Network errors during install | Try `uv sync --refresh` |
-| Wrong Python in shell | `uv python pin 3.11` and restart terminal |
-
----
-
-## 👥 Collaboration Notes
-- Use feature branches: `feat/<name>` or `fix/<name>`  
-- Always run tests + `black .` before committing  
-- Never commit `.venv` or `.env` files.  
-- Update `README.md` if dependencies or key commands change.  
-
----
-
-## 📜 License
-MIT — use, modify, and share responsibly.
-
----
-
-**Maintainers:**  
-👨💻 Alex — Data Infrastructure + APIs  
-🤖 [Your Teammate] — ML Models + Dashboards# 🛣️ Real-Time Traffic Intelligence Hub
-
-A data engineering and machine learning platform that ingests streaming and batch traffic data, predicts congestion, and visualizes live road analytics.
-
----
-
-## 🚀 Quick Start — Environment Setup (using `uv`)
-
-This project uses [`uv`](https://docs.astral.sh/uv/) for Python environment + dependency management.
-
-### 1️⃣ Install uv
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-After installing, check:
-```bash
-uv --version
-```
-
----
-
-### 2️⃣ Clone the Repository
-```bash
-git clone https://github.com/<your-org>/traffic-intelligence-hub.git
-cd traffic-intelligence-hub
-```
-
----
-
-### 3️⃣ Set Up Python & Environment
-Target version: **Python 3.11** (stable for ML + Airflow + PySpark)
+Spin up Kafka, PostgreSQL, and MLflow:
 
 ```bash
-uv python install 3.11
-uv python pin 3.11
+docker compose up -d
 ```
 
 ---
 
-### 4️⃣ Sync Dependencies
-All dependencies are defined in `pyproject.toml` and locked via `uv.lock`.
+### Run Core Services
+
+| Service                | Command                                             |
+| ---------------------- | --------------------------------------------------- |
+| FastAPI API            | `make api`                                          |
+| Streamlit Dashboard    | `make dashboard`                                    |
+| Kafka Stream Producer  | `uv run python kafka_producer/simulate_stream.py`   |
+| Spark Stream Processor | `uv run python spark_streaming/stream_processor.py` |
+
+Visit:
+
+- **MLflow UI** → [http://localhost:5000](http://localhost:5000)
+- **FastAPI Docs** → [http://localhost:8080/docs](http://localhost:8080)
+- **Streamlit Dashboard** → [http://localhost:8501](http://localhost:8501)
+
+---
+
+## Development Workflow
+
+All key operations are defined in the **Makefile**:
+
+| Command          | Description                         |
+| ---------------- | ----------------------------------- |
+| `make sync`      | Sync dependencies (using `uv`)      |
+| `make qa`        | Run format + lint + type-check      |
+| `make format`    | Auto-fix style (Ruff)               |
+| `make lint`      | Lint (no modifications)             |
+| `make typecheck` | Run Mypy static checks              |
+| `make test`      | Run full pytest suite + coverage    |
+| `make clean`     | Remove cache, lock, and build files |
+
+---
+
+## Testing
+
+Run all tests (with coverage):
 
 ```bash
-uv sync
+make test
 ```
 
-This creates a reproducible virtual environment inside `.venv/`.
+Test stack (installed via `uv --dev`):
 
-You can now run commands with:
+- `pytest`
+- `pytest-asyncio`
+- `pytest-cov`
+- `pytest-mock`
+- `pytest-xdist`
+
+Example test (`tests/test_api_routes.py`):
+
+```python
+def test_healthcheck(client):
+    response = client.get("/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+```
+
+---
+
+## Code Quality
+
+- **Formatting, Linting, Imports** → `Ruff`
+- **Static Typing** → `Mypy`
+- **Test Coverage** → `pytest-cov`
+- **Automation** → `Makefile` targets + optional pre-commit hooks
+
+Install pre-commit (optional):
+
 ```bash
-uv run python
-```
-
-or activate interactively:
-```bash
-eval $(uv activate)
+uv run pre-commit install
 ```
 
 ---
 
-### 5️⃣ Verify Setup
-Run a quick import check:
-```bash
-uv run python -c "import pandas, pyspark, mlflow, fastapi, streamlit; print('✅ Environment ready!')"
+## Repository Overview
+
+```text
+traffic-intelligence-hub/
+├── airflow/                 # Batch DAGs & orchestration
+├── kafka_producer/          # Simulated IoT traffic data stream
+├── spark_streaming/         # Real-time stream processor
+├── ml/                      # ML pipelines and model serving
+├── visualization/           # Streamlit + Plotly dashboard
+├── src/utils/               # Helpers (logging, config, IO)
+├── tests/                   # Unit + integration tests
+├── docs/                    # Extra documentation
+├── data/                    # Raw & processed datasets
+├── docker-compose.yml       # Local stack definition
+├── Makefile                 # Dev automation
+├── pyproject.toml           # uv + tooling config
+└── README.md
 ```
 
 ---
 
-## 🧩 Standard Workflow
+## Key Docs
 
-| Task | Command | Description |
-|------|----------|-------------|
-| Install new library | `uv add <package>` | Adds and locks dependency |
-| Add dev-only package | `uv add --dev <package>` | Linters, test libs |
-| Start API locally | `uv run fastapi dev` | Serve FastAPI endpoints |
-| Run Streamlit dashboard | `uv run streamlit run visualization/dashboard.py` | Visualization UI |
-| Run tests | `uv run pytest -v` | Unit/integration tests |
-| Format code | `uv run black .` | Ensure consistent styling |
+- [`docs/architecture.md`](docs/architecture.md) – system components, data flow, dependencies
+- [`docs/contributing.md`](docs/contributing.md) – dev workflow & team conventions
 
 ---
 
-## 🗂️ Included Components
-- **Kafka Producer** → generates synthetic traffic data streams  
-- **Spark Streaming Job** → real-time ingestion + processing  
-- **Airflow DAGs** → batch ingestion & feature builds  
-- **ML / FastAPI Service** → model inference + REST endpoints  
-- **Streamlit Dashboard** → live traffic visualization  
+## Team Guidelines
+
+- Always use `make qa && make test` before committing.
+- Open PRs off `main`, merge via review to `main`.
+- Don't commit `.env` or local data files.
 
 ---
 
-## 🔧 Troubleshooting
+## Collaboration Notes
 
-| Issue | Possible Fix |
-|--------|----------------|
-| Missing wheel or compile fail | Ensure Python 3.11, rerun `uv sync` |
-| Network errors during install | Try `uv sync --refresh` |
-| Wrong Python in shell | `uv python pin 3.11` and restart terminal |
+- Use feature branches: `feat/<name>` or `fix/<name>`
+- Always run tests before committing
+- Never commit `.venv` or `.env` files.
+- Update `README.md` if dependencies or key commands change.
 
----
-
-## 👥 Collaboration Notes
-- Use feature branches: `feat/<name>` or `fix/<name>`  
-- Always run tests + `black .` before committing  
-- Never commit `.venv` or `.env` files.  
-- Update `README.md` if dependencies or key commands change.  
-
----
-
-## 📜 License
-MIT — use, modify, and share responsibly.
-
----
-
-**Maintainers:**  
-👨💻 Alex — Data Infrastructure + APIs  
-🤖 [Your Teammate] — ML Models + Dashboards
