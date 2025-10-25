@@ -19,13 +19,13 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ### Chunk 1.2: Core Services Orchestration
 
-- [ ] Create the `docker-compose.yml` file.
-- [ ] Add the PostgreSQL service, including volume for data persistence and environment variables for credentials.
-- [ ] Add Zookeeper and Kafka services, ensuring they are on the same Docker network.
-- [ ] Add the MLflow tracking server service.
-- [ ] Configure MLflow to use the PostgreSQL instance as its backend store.
-- [ ] Configure MLflow to use a local volume for storing artifacts.
-- [ ] Verify that `docker compose up -d` starts all services without errors.
+- [x] Create the `docker-compose.yml` file.
+- [x] Add the PostgreSQL service, including volume for data persistence and environment variables for credentials.
+- [x] Add Zookeeper and Kafka services, ensuring they are on the same Docker network.
+- [x] Add the MLflow tracking server service.
+- [x] Configure MLflow to use the PostgreSQL instance as its backend store.
+- [x] Configure MLflow to use a local volume for storing artifacts.
+- [x] Verify that `docker compose up -d` starts all services without errors.
 
 ### Chunk 1.3: Automation & Dependency Management
 
