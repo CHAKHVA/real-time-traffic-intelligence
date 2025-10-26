@@ -17,26 +17,12 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ### Chunk 1.1: Project Scaffolding & Version Control
 
-- [ ] Initialize Git repository with `.python-version` file set to `3.11`
-- [ ] Create complete directory structure per spec.md §15:
-  - [ ] `src/{ingestion,processing,ml,schemas,utils}/`
-  - [ ] `api/{routes,models}/`
-  - [ ] `dashboard/`
-  - [ ] `airflow/{dags,config}/`
-  - [ ] `tests/{unit,integration}/`
-  - [ ] `data/{raw,processed}/`
-  - [ ] `docs/`
-  - [ ] `scripts/`
-  - [ ] `.github/workflows/`
-- [ ] Create `.gitkeep` files in `data/raw/` and `data/processed/` directories
-- [ ] Initialize `pyproject.toml` with `uv` targeting Python 3.11
-- [ ] Define project metadata (name, version, description, authors) in `pyproject.toml`
-- [ ] Create comprehensive `.gitignore` (Python, data files, MLflow artifacts, Docker volumes, `.env`)
-- [ ] Create initial `README.md` with project overview and quick start instructions
-- [ ] Create `.env.example` template with all required environment variables:
-  - [ ] Kafka broker URL
-  - [ ] PostgreSQL connection string
-  - [ ] MLflow tracking URI
+- [X] Initialize a new Git repository (`git init`).
+- [X] Create the top-level directory structure (`airflow/`, `kafka_producer/`, `ml/`, `src/utils/`, `tests/`, `data/`, `docs/`, `visualization/`).
+- [X] Add placeholder `.gitkeep` files to empty directories to ensure they are tracked by Git.
+- [X] Create and initialize the `pyproject.toml` file.
+- [X] Create an initial `README.md` with a project overview.
+- [X] Create a standard Python `.gitignore` file.
 
 ### Chunk 1.2: Core Services Orchestration
 
