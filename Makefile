@@ -130,8 +130,8 @@ kafka-ui:
 
 ## Open MLflow UI in browser
 mlflow-ui:
-	@echo "Opening MLflow UI at http://localhost:5001"
-	@open http://localhost:5001 2>/dev/null || xdg-open http://localhost:5001 2>/dev/null || echo "Please open http://localhost:5001 in your browser"
+	@echo "Opening MLflow UI at http://localhost:5000"
+	@open http://localhost:5000 2>/dev/null || xdg-open http://localhost:5000 2>/dev/null || echo "Please open http://localhost:5000 in your browser"
 
 ## Connect to PostgreSQL database
 db-connect:
@@ -149,11 +149,11 @@ dev:
 	@echo ""
 	@echo "📊 Opening UIs..."
 	@open http://localhost:8080 2>/dev/null || xdg-open http://localhost:8080 2>/dev/null || true
-	@open http://localhost:5001 2>/dev/null || xdg-open http://localhost:5001 2>/dev/null || true
+	@open http://localhost:5000 2>/dev/null || xdg-open http://localhost:5000 2>/dev/null || true
 	@echo ""
 	@echo "🎯 Service URLs:"
 	@echo "   - Kafka UI:  http://localhost:8080"
-	@echo "   - MLflow UI: http://localhost:5001"
+	@echo "   - MLflow UI: http://localhost:5000"
 	@echo "   - API:       http://localhost:8000 (run 'make run-api' in another terminal)"
 	@echo "   - Dashboard: http://localhost:8501 (run 'make run-streamlit' in another terminal)"
 	@echo ""

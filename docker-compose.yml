@@ -84,7 +84,7 @@ services:
       postgres:
         condition: service_healthy
     ports:
-      - "5001:5000"
+      - "5000:5000"
     environment:
       MLFLOW_BACKEND_STORE_URI: postgresql://traffic_user:traffic_pass@postgres:5432/traffic_db
       MLFLOW_ARTIFACT_ROOT: /mlflow/artifacts

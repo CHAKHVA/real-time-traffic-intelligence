@@ -85,7 +85,7 @@ make run-streamlit    # Start dashboard
 ### Access Services
 
 - **Kafka UI:** <http://localhost:8080>
-- **MLflow UI:** <http://localhost:5001>
+- **MLflow UI:** <http://localhost:5000>
 - **FastAPI Docs:** <http://localhost:8000/docs>
 - **Streamlit Dashboard:** <http://localhost:8501>
 
