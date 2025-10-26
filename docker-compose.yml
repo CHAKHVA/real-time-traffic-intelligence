@@ -1,24 +1,24 @@
 services:
-  # PostgreSQL Database
+  # PostgreSQL - Main database for processed data and MLflow backend
   postgres:
     image: postgres:15-alpine
     container_name: traffic-postgres
     environment:
-      POSTGRES_USER: traffic_user
-      POSTGRES_PASSWORD: traffic_password
       POSTGRES_DB: traffic_db
+      POSTGRES_USER: traffic_user
+      POSTGRES_PASSWORD: traffic_pass
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - traffic_network
+      - ./scripts/init_db.sh:/docker-entrypoint-initdb.d/init_db.sh
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U traffic_user -d traffic_db"]
       interval: 10s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
+    networks:
+      - traffic-network
 
   # Zookeeper - Required for Kafka
   zookeeper:
@@ -30,104 +30,131 @@ services:
     ports:
       - "2181:2181"
     networks:
-      - traffic_network
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: unless-stopped
+      - traffic-network
 
-  # Kafka Message Broker
+  # Kafka - Streaming message broker
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: traffic-kafka
     depends_on:
-      zookeeper:
-        condition: service_healthy
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "29092:29092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-    ports:
-      - "9092:9092"
-      - "29092:29092"
-    networks:
-      - traffic_network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-broker-api-versions --bootstrap-server localhost:9092",
+        ]
       interval: 10s
       timeout: 10s
       retries: 5
-    restart: unless-stopped
+    networks:
+      - traffic-network
 
-  # Kafka UI - Web interface for Kafka management
+  # Kafka UI - Web interface for monitoring Kafka
   kafka-ui:
     image: provectuslabs/kafka-ui:latest
     container_name: traffic-kafka-ui
     depends_on:
-      kafka:
-        condition: service_healthy
-    environment:
-      KAFKA_CLUSTERS_0_NAME: traffic-cluster
-      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
-      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
-      DYNAMIC_CONFIG_ENABLED: "true"
+      - kafka
     ports:
       - "8080:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     networks:
-      - traffic_network
-    healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-    restart: unless-stopped
+      - traffic-network
 
-  # MLflow Tracking Server
+  # MLflow - Model tracking and registry
   mlflow:
-    build:
-      context: .
-      dockerfile: Dockerfile.mlflow
+    image: ghcr.io/mlflow/mlflow:v2.9.2
     container_name: traffic-mlflow
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      MLFLOW_BACKEND_STORE_URI: postgresql://traffic_user:traffic_password@postgres:5432/traffic_db
-      MLFLOW_ARTIFACT_ROOT: /mlflow/artifacts
     ports:
       - "5001:5000"
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://traffic_user:traffic_pass@postgres:5432/traffic_db
+      MLFLOW_ARTIFACT_ROOT: /mlflow/artifacts
     volumes:
       - mlflow_artifacts:/mlflow/artifacts
-    networks:
-      - traffic_network
     command: >
       mlflow server
-      --backend-store-uri postgresql://traffic_user:traffic_password@postgres:5432/traffic_db
+      --backend-store-uri postgresql://traffic_user:traffic_pass@postgres:5432/traffic_db
       --default-artifact-root /mlflow/artifacts
       --host 0.0.0.0
       --port 5000
-    healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
-    restart: unless-stopped
+    networks:
+      - traffic-network
+
+  # Airflow Webserver - Workflow orchestration UI
+  airflow-webserver:
+    image: apache/airflow:2.8.0-python3.11
+    container_name: traffic-airflow-webserver
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "8081:8080"
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://traffic_user:traffic_pass@postgres:5432/traffic_db
+      AIRFLOW__CORE__FERNET_KEY: "ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "secret"
+      AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: "true"
+      _AIRFLOW_WWW_USER_CREATE: "true"
+      _AIRFLOW_WWW_USER_USERNAME: "admin"
+      _AIRFLOW_WWW_USER_PASSWORD: "admin"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - airflow_plugins:/opt/airflow/plugins
+    command: >
+      bash -c "airflow db migrate &&
+               airflow users create --username admin --password admin --firstname Admin --lastname User --role Admin --email admin@example.com || true &&
+               airflow webserver"
+    networks:
+      - traffic-network
+
+  # Airflow Scheduler - Workflow orchestration scheduler
+  airflow-scheduler:
+    image: apache/airflow:2.8.0-python3.11
+    container_name: traffic-airflow-scheduler
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://traffic_user:traffic_pass@postgres:5432/traffic_db
+      AIRFLOW__CORE__FERNET_KEY: "ZmDfcTF7_60GrrY167zsiPd67pEvs0aGOv2oasOM1Pg="
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+    volumes:
+      - ./airflow/dags:/opt/airflow/dags
+      - airflow_logs:/opt/airflow/logs
+      - airflow_plugins:/opt/airflow/plugins
+    command: airflow scheduler
+    networks:
+      - traffic-network
 
 networks:
-  traffic_network:
+  traffic-network:
     driver: bridge
-    name: traffic_network
 
 volumes:
   postgres_data:
-    name: traffic_postgres_data
   mlflow_artifacts:
-    name: traffic_mlflow_artifacts
+  airflow_logs:
+  airflow_plugins:
