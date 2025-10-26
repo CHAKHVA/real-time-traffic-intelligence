@@ -188,7 +188,7 @@ This document defines requirements, architecture decisions, data handling, error
   # Utilities
   make kafka-topics   # List Kafka topics
   make kafka-ui       # Open Kafka UI (http://localhost:8080)
-  make mlflow-ui      # Open MLflow UI (http://localhost:5001)
+  make mlflow-ui      # Open MLflow UI (http://localhost:5000)
   make db-connect     # Connect to PostgreSQL
   ```
 
@@ -210,12 +210,12 @@ All streaming/batch data is normalized to schema. Pydantic validation (`src/sche
 
 ### 6.3 Storage Strategy
 
-| Layer               | System                          | Format                |
-| :------------------ | :------------------------------ | :-------------------- |
-| **Raw streaming**   | Kafka topic (`traffic_raw`)     | JSON bytes            |
-| **Clean processed** | PostgreSQL table                | Tabular columns       |
-| **Features**        | PostgreSQL (`feature_store`)    | numeric + categorical |
-| **Models**          | MLflow artifacts                | pickle                |
+| Layer               | System                       | Format                |
+| :------------------ | :--------------------------- | :-------------------- |
+| **Raw streaming**   | Kafka topic (`traffic_raw`)  | JSON bytes            |
+| **Clean processed** | PostgreSQL table             | Tabular columns       |
+| **Features**        | PostgreSQL (`feature_store`) | numeric + categorical |
+| **Models**          | MLflow artifacts             | pickle                |
 
 ### 6.4 Transformation Pipeline
 
