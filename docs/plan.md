@@ -5,7 +5,7 @@ The goal of this phase is to establish a stable, reproducible development enviro
 ### Chunk 1.1: Project Scaffolding & Version Control
 
 - **Step 1.1.1:** Initialize a new Git repository.
-- **Step 1.1.2:** Create the top-level directory structure as defined in the specification (`airflow/`, `kafka_producer/`, `ml/`, `src/utils`, `tests/`, etc.).
+- **Step 1.1.2:** Create the top-level directory structure as defined in the specification (`src/`, `api/`, `dashboard/`, `airflow/`, `tests/`, `data/`, `docs/`, `scripts/`, `.github/`).
 - **Step 1.1.3:** Create placeholder `.gitkeep` files in empty directories to ensure they are tracked by Git.
 - **Step 1.1.4:** Create the `pyproject.toml` file and initialize it with `uv`. Define basic project metadata (name, version, authors).
 - **Step 1.1.5:** Create an initial `README.md` and a `.gitignore` file for Python projects.
@@ -29,7 +29,7 @@ The goal of this phase is to establish a stable, reproducible development enviro
 ### Chunk 1.4: Base Utilities & Configuration
 
 - **Step 1.4.1:** Create a configuration management file (`src/utils/config.py`) to load settings (e.g., Kafka broker URL, PostgreSQL connection string) from environment variables.
-- **Step 1.4.2:** Implement a standardized logging utility (`src/utils/logging_utils.py`) that provides a pre-configured logger for consistent, structured logging across the project.
+- **Step 1.4.2:** Implement a standardized logging utility (`src/utils/logging.py`) that provides a pre-configured logger for consistent, structured logging across the project.
 - **Step 1.4.3:** Define the core data schema (`src/schemas/traffic_event.py`) using Pydantic to ensure data integrity from the very beginning.
 
 ---
@@ -41,7 +41,7 @@ With the environment set up, the next step is to get data flowing into the syste
 ### Chunk 2.1: Real-Time Data Producer
 
 - **Step 2.1.1:** Add the `kafka-python` library to `pyproject.toml` and run `make sync`.
-- **Step 2.1.2:** Create the producer script (`kafka_producer/producer.py`).
+- **Step 2.1.2:** Create the producer script (`src/ingestion/kafka_producer.py`).
 - **Step 2.1.3:** In the script, implement a function to connect to the Kafka broker using settings from the config utility.
 - **Step 2.1.4:** Write a function that generates a single, random-but-valid traffic event using the Pydantic schema.
 - **Step 2.1.5:** Create a main loop that generates and sends these events to the `traffic_raw` Kafka topic as JSON bytes.
@@ -57,7 +57,7 @@ With the environment set up, the next step is to get data flowing into the syste
 ### Chunk 2.3: Simple Stream Processor
 
 - **Step 2.3.1:** Add `pyspark` to `pyproject.toml` and run `make sync`.
-- **Step 2.3.2:** Create the Spark streaming script (`spark_streaming/stream_processor.py`).
+- **Step 2.3.2:** Create the Spark streaming script (`src/processing/spark_streaming.py`).
 - **Step 2.3.3:** Implement a utility (`src/utils/spark_session.py`) to create a configured SparkSession that can connect to Kafka.
 - **Step 2.3.4:** In the processor script, read from the `traffic_raw` Kafka topic.
 - **Step 2.3.5:** Perform a basic transformation: parse the JSON, select the fields, and print the resulting DataFrame to the console using a `writeStream` with a `console` sink.
@@ -71,7 +71,7 @@ This phase connects the components built in Phase 2 to create a complete, albeit
 
 ### Chunk 3.1: Persisting Streamed Data
 
-- **Step 3.1.1:** Modify the Spark streaming job (`spark_streaming/stream_processor.py`).
+- **Step 3.1.1:** Modify the Spark streaming job (`src/processing/spark_streaming.py`).
 - **Step 3.1.2:** Instead of writing to the console, change the `writeStream` sink to write to the PostgreSQL table created in Chunk 2.2. This will require the PostgreSQL JDBC driver.
 - **Step 3.1.3:** Add schema validation and basic data cleaning (e.g., dropping rows with null `road_id` or `timestamp`).
 - **Step 3.1.4:** Implement a simple 5-minute tumbling window aggregation to calculate `avg_speed` and `vehicle_count`.
@@ -102,14 +102,14 @@ With data flowing and stored, this phase focuses on building and tracking the pr
 ### Chunk 4.1: Feature Engineering
 
 - **Step 4.1.1:** Add `scikit-learn`, `xgboost`, and `mlflow` to `pyproject.toml`.
-- **Step 4.1.2:** Create a script `ml/feature_engineering.py`.
+- **Step 4.1.2:** Create a script `src/ml/feature_engineering.py`.
 - **Step 4.1.3:** This script should read from the `historical_traffic_data` table.
 - **Step 4.1.4:** Implement functions to create features: rolling averages for `vehicle_count`, `day_of_week`, `hour_of_day`, and a `is_rush_hour` flag.
 - **Step 4.1.5:** Write the resulting feature-rich DataFrame to a new `feature_store` table in PostgreSQL.
 
 ### Chunk 4.2: Model Training & Tracking
 
-- **Step 4.2.1:** Create the training script `ml/train_model.py`.
+- **Step 4.2.1:** Create the training script `src/ml/train_model.py`.
 - **Step 4.2.2:** The script should read data from the `feature_store` table.
 - **Step 4.2.3:** Implement an MLflow experiment block (`with mlflow.start_run():`).
 - **Step 4.2.4:** Log parameters (e.g., model type, hyperparameters) and metrics (RMSE, R²).
@@ -132,16 +132,16 @@ This phase makes the system's intelligence accessible to end-users.
 ### Chunk 5.1: Prediction API
 
 - **Step 5.1.1:** Add `fastapi` and `uvicorn` to `pyproject.toml`.
-- **Step 5.1.2:** Create the FastAPI application in `ml/predict_service/main.py`.
+- **Step 5.1.2:** Create the FastAPI application in `api/main.py`.
 - **Step 5.1.3:** Implement the `/health` endpoint that returns a 200 OK.
-- **Step 5.1.4:** Create a `model_loader.py` utility. On startup, it should use the MLflow client to load the latest model version marked as "Production" from the `traffic_speed_predictor` registry entry.
+- **Step 5.1.4:** Create a `api/models/model_loader.py` utility. On startup, it should use the MLflow client to load the latest model version marked as "Production" from the `traffic_speed_predictor` registry entry.
 - **Step 5.1.5:** Implement the `/predict` POST endpoint, using Pydantic models for request and response validation. This endpoint will use the loaded model to make predictions.
 - **Step 5.1.6:** Add a `make api` command to the Makefile to run the service with Uvicorn.
 
 ### Chunk 5.2: Interactive Dashboard
 
 - **Step 5.2.1:** Add `streamlit` and `plotly` to `pyproject.toml`.
-- **Step 5.2.2:** Create the dashboard script `visualization/dashboard.py`.
+- **Step 5.2.2:** Create the dashboard script `dashboard/app.py`.
 - **Step 5.2.3:** The dashboard should connect to the PostgreSQL `processed_traffic_data` table and display a live KPI like "Average Speed (last 15 mins)".
 - **Step 5.2.4:** Add a line chart showing the historical trend of average speed for a selected road.
 - **Step 5.2.5:** Create an interactive form where a user can input features (hour, day of week, etc.). On submission, the dashboard will call the FastAPI `/predict` endpoint and display the returned prediction.
@@ -156,9 +156,9 @@ This final phase ensures the system is robust, reliable, and easy to maintain.
 ### Chunk 6.1: Unit & Integration Testing
 
 - **Step 6.1.1:** Add `pytest` and `pytest-cov` to `pyproject.toml`.
-- **Step 6.1.2:** Write unit tests for the feature engineering functions in `tests/ml/`.
-- **Step 6.1.3:** Write unit tests for the Pydantic schemas in `tests/schemas/`.
-- **Step 6.1.4:** Using FastAPI's `TestClient`, write integration tests for the `/predict` and `/health` endpoints in `tests/api/`.
+- **Step 6.1.2:** Write unit tests for the feature engineering functions in `tests/unit/test_ml.py`.
+- **Step 6.1.3:** Write unit tests for the Pydantic schemas in `tests/unit/test_schemas.py`.
+- **Step 6.1.4:** Using FastAPI's `TestClient`, write integration tests for the `/predict` and `/health` endpoints in `tests/integration/test_api.py`.
 - **Step 6.1.5:** Implement the `make test` command to run `pytest --cov` and enforce an 85% coverage goal.
 
 ### Chunk 6.2: CI/CD Pipeline

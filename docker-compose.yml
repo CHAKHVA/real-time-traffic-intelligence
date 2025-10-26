@@ -59,7 +59,13 @@ services:
     networks:
       - traffic_network
     healthcheck:
-      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      test:
+        [
+          "CMD",
+          "kafka-broker-api-versions",
+          "--bootstrap-server",
+          "localhost:9092",
+        ]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -82,7 +88,15 @@ services:
     networks:
       - traffic_network
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          "CMD",
+          "wget",
+          "--quiet",
+          "--tries=1",
+          "--spider",
+          "http://localhost:8080/actuator/health",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -91,9 +105,7 @@ services:
 
   # MLflow Tracking Server
   mlflow:
-    build:
-      context: .
-      dockerfile: Dockerfile.mlflow
+    image: ghcr.io/mlflow/mlflow:v2.10.2
     container_name: traffic-mlflow
     depends_on:
       postgres:
@@ -114,7 +126,13 @@ services:
       --host 0.0.0.0
       --port 5000
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

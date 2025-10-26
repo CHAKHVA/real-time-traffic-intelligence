@@ -11,7 +11,7 @@ A complete **data engineering + machine learning platform** that continuously in
 | **Language & Env**        | Python 3.11 (managed via [`uv`](https://docs.astral.sh/uv/)) |
 | **Streaming**             | Apache Kafka, Spark Structured Streaming                     |
 | **Batch / Orchestration** | Apache Airflow                                               |
-| **Storage**               | PostgreSQL, S3 (data lake)                                   |
+| **Storage**               | PostgreSQL                                                   |
 | **ML**                    | scikit-learn, XGBoost, MLflow                                |
 | **Serving / API**         | FastAPI                                                      |
 | **Visualization**         | Streamlit                                                    |
@@ -56,30 +56,56 @@ cp .env.example .env
 
 ---
 
-### Start Local Infrastructure
+### Quick Start (One Command!)
 
-Spin up Kafka, PostgreSQL, and MLflow:
+Start all infrastructure services and open UIs:
 
 ```bash
-docker compose up -d
+make dev
 ```
+
+This will:
+
+- Start PostgreSQL, Kafka, Zookeeper, MLflow, Kafka UI
+- Open Kafka UI and MLflow UI in your browser
+- Show you next steps to run application services
+
+Then in separate terminals:
+
+```bash
+make run-producer     # Terminal 2: Start data ingestion
+make run-api          # Terminal 3: Start prediction API
+make run-streamlit    # Terminal 4: Start dashboard
+```
+
+**Service URLs:**
+
+- **Kafka UI** → [http://localhost:8080](http://localhost:8080)
+- **MLflow UI** → [http://localhost:5001](http://localhost:5001)
+- **FastAPI Docs** → [http://localhost:8000/docs](http://localhost:8000/docs)
+- **Streamlit Dashboard** → [http://localhost:8501](http://localhost:8501)
 
 ---
 
-### Run Core Services
+### Alternative: Manual Setup
 
-| Service                | Command                                             |
-| ---------------------- | --------------------------------------------------- |
-| FastAPI API            | `make api`                                          |
-| Streamlit Dashboard    | `make dashboard`                                    |
-| Kafka Stream Producer  | `uv run python kafka_producer/simulate_stream.py`   |
-| Spark Stream Processor | `uv run python spark_streaming/stream_processor.py` |
+If you prefer step-by-step:
 
-Visit:
+```bash
+# 1. Start infrastructure
+make docker-up
 
-- **MLflow UI** → [http://localhost:5000](http://localhost:5000)
-- **FastAPI Docs** → [http://localhost:8080/docs](http://localhost:8080)
-- **Streamlit Dashboard** → [http://localhost:8501](http://localhost:8501)
+# 2. Run application services (in separate terminals)
+make run-producer
+make run-api
+make run-streamlit
+
+# 3. View logs
+make docker-logs
+
+# 4. Stop everything
+make docker-down
+```
 
 ---
 
@@ -87,15 +113,51 @@ Visit:
 
 All key operations are defined in the **Makefile**:
 
-| Command          | Description                         |
-| ---------------- | ----------------------------------- |
-| `make sync`      | Sync dependencies (using `uv`)      |
-| `make qa`        | Run format + lint + type-check      |
-| `make format`    | Auto-fix style (Ruff)               |
-| `make lint`      | Lint (no modifications)             |
-| `make typecheck` | Run Mypy static checks              |
-| `make test`      | Run full pytest suite + coverage    |
-| `make clean`     | Remove cache, lock, and build files |
+### Quick Start Commands
+
+| Command         | Description                                  |
+| --------------- | -------------------------------------------- |
+| `make dev`      | Start all services + open UIs (one command!) |
+| `make stop-all` | Stop all running services                    |
+
+### Application Services
+
+| Command              | Description                           |
+| -------------------- | ------------------------------------- |
+| `make run-api`       | Start FastAPI prediction service      |
+| `make run-streamlit` | Start Streamlit dashboard             |
+| `make run-producer`  | Start Kafka producer (data ingestion) |
+
+### Infrastructure
+
+| Command             | Description                      |
+| ------------------- | -------------------------------- |
+| `make docker-up`    | Start all Docker services        |
+| `make docker-down`  | Stop all Docker services         |
+| `make docker-logs`  | View logs from all services      |
+| `make docker-clean` | Stop services and remove volumes |
+
+### Code Quality
+
+| Command          | Description                              |
+| ---------------- | ---------------------------------------- |
+| `make sync`      | Sync dependencies (using `uv`)           |
+| `make check`     | Run all checks (lint + typecheck + test) |
+| `make format`    | Auto-fix style (Ruff)                    |
+| `make lint`      | Lint (no modifications)                  |
+| `make typecheck` | Run Mypy static checks                   |
+| `make test`      | Run full pytest suite                    |
+| `make test-cov`  | Run tests with coverage report           |
+| `make clean`     | Remove cache, lock, and build files      |
+
+### Utilities
+
+| Command             | Description                    |
+| ------------------- | ------------------------------ |
+| `make kafka-topics` | List all Kafka topics          |
+| `make kafka-ui`     | Open Kafka UI in browser       |
+| `make mlflow-ui`    | Open MLflow UI in browser      |
+| `make db-connect`   | Connect to PostgreSQL database |
 
 ---
 
@@ -115,15 +177,6 @@ Test stack (installed via `uv --dev`):
 - `pytest-mock`
 - `pytest-xdist`
 
-Example test (`tests/test_api_routes.py`):
-
-```python
-def test_healthcheck(client):
-    response = client.get("/health")
-    assert response.status_code == 200
-    assert response.json() == {"status": "ok"}
-```
-
 ---
 
 ## Code Quality
@@ -134,3 +187,25 @@ def test_healthcheck(client):
 - **Automation** → `Makefile` targets
 
 ---
+
+## Architecture
+
+For detailed architecture, data flow, and deployment strategy, see:
+
+- **[Engineering Specification](docs/spec.md)** - Complete system architecture and design decisions
+- **[Implementation Plan](docs/plan.md)** - Step-by-step development guide
+- **[Project Checklist](docs/todo.md)** - Task breakdown and progress tracking
+
+### Project Structure
+
+```
+real-time-traffic-intelligence/
+├── src/              # Core application code (ingestion, processing, ML)
+├── api/              # FastAPI prediction service
+├── dashboard/        # Streamlit visualization
+├── airflow/          # Batch processing DAGs
+├── tests/            # Unit and integration tests
+├── data/             # Local data storage
+├── docs/             # Documentation
+└── scripts/          # Utility scripts
+```

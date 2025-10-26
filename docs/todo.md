@@ -11,7 +11,7 @@ This checklist breaks down the entire project into actionable steps, following t
 ### Chunk 1.1: Project Scaffolding & Version Control
 
 - [ ] Initialize a new Git repository (`git init`).
-- [ ] Create the top-level directory structure (`airflow/`, `kafka_producer/`, `ml/`, `src/utils/`, `tests/`, `data/`, `docs/`, `visualization/`).
+- [ ] Create the top-level directory structure (`src/`, `api/`, `dashboard/`, `airflow/`, `tests/`, `data/`, `docs/`, `scripts/`, `.github/`).
 - [ ] Add placeholder `.gitkeep` files to empty directories to ensure they are tracked by Git.
 - [ ] Create and initialize the `pyproject.toml` file.
 - [ ] Create an initial `README.md` with a project overview.
@@ -38,7 +38,7 @@ This checklist breaks down the entire project into actionable steps, following t
 ### Chunk 1.4: Base Utilities & Configuration
 
 - [ ] Create a configuration management file (`src/utils/config.py`) to load settings from environment variables.
-- [ ] Implement a standardized logging utility (`src/utils/logging_utils.py`) for structured logging.
+- [ ] Implement a standardized logging utility (`src/utils/logging.py`) for structured logging.
 - [ ] Define the core traffic event schema using Pydantic (`src/schemas/traffic_event.py`).
 
 ---
@@ -50,7 +50,7 @@ This checklist breaks down the entire project into actionable steps, following t
 ### Chunk 2.1: Real-Time Data Producer
 
 - [ ] Add `kafka-python` to `pyproject.toml` and run `make sync`.
-- [ ] Create the producer script (`kafka_producer/producer.py`).
+- [ ] Create the producer script (`src/ingestion/kafka_producer.py`).
 - [ ] Implement Kafka connection logic using the config utility.
 - [ ] Write a function to generate a valid traffic event based on the Pydantic schema.
 - [ ] Create a main loop to send events to the `traffic_raw` Kafka topic.
@@ -66,7 +66,7 @@ This checklist breaks down the entire project into actionable steps, following t
 ### Chunk 2.3: Simple Stream Processor
 
 - [ ] Add `pyspark` to `pyproject.toml` and run `make sync`.
-- [ ] Create the Spark streaming script (`spark_streaming/stream_processor.py`).
+- [ ] Create the Spark streaming script (`src/processing/spark_streaming.py`).
 - [ ] Implement a SparkSession utility (`src/utils/spark_session.py`).
 - [ ] Configure the Spark job to read from the `traffic_raw` Kafka topic.
 - [ ] Implement a basic transformation (JSON parsing, field selection).
@@ -81,7 +81,7 @@ This checklist breaks down the entire project into actionable steps, following t
 
 ### Chunk 3.1: Persisting Streamed Data
 
-- [ ] Modify the Spark job to write to the PostgreSQL `processed_traffic_data` table instead of the console.
+- [ ] Modify the Spark job (`src/processing/spark_streaming.py`) to write to the PostgreSQL `processed_traffic_data` table instead of the console.
 - [ ] Add schema validation and null-value filtering to the Spark job.
 - [ ] Implement a 5-minute tumbling window aggregation (avg_speed, vehicle_count).
 - [ ] Run the full flow (`make up`, `make init-db`, `make producer`, `make stream`) and verify data appears in PostgreSQL.
@@ -111,14 +111,14 @@ This checklist breaks down the entire project into actionable steps, following t
 ### Chunk 4.1: Feature Engineering
 
 - [ ] Add `scikit-learn`, `xgboost`, and `mlflow` to `pyproject.toml`.
-- [ ] Create the feature engineering script (`ml/feature_engineering.py`).
+- [ ] Create the feature engineering script (`src/ml/feature_engineering.py`).
 - [ ] Implement logic to read from the `historical_traffic_data` table.
 - [ ] Implement functions to create features (rolling means, time-based flags).
 - [ ] Write the final features to a `feature_store` table in PostgreSQL.
 
 ### Chunk 4.2: Model Training & Tracking
 
-- [ ] Create the model training script (`ml/train_model.py`).
+- [ ] Create the model training script (`src/ml/train_model.py`).
 - [ ] Implement logic to read from the `feature_store` table.
 - [ ] Set up an MLflow experiment block (`with mlflow.start_run():`).
 - [ ] Log model parameters (hyperparameters) and evaluation metrics (RMSE, R²).
@@ -141,16 +141,16 @@ This checklist breaks down the entire project into actionable steps, following t
 ### Chunk 5.1: Prediction API
 
 - [ ] Add `fastapi` and `uvicorn` to `pyproject.toml`.
-- [ ] Create the FastAPI application (`ml/predict_service/main.py`).
-- [ ] Implement the `/health` endpoint.
-- [ ] Create a model loading utility (`ml/predict_service/model_loader.py`) that loads the "Production" model from MLflow on startup.
+- [ ] Create the FastAPI application (`api/main.py`).
+- [ ] Implement the `/health` endpoint in `api/routes/health.py`.
+- [ ] Create a model loading utility (`api/models/model_loader.py`) that loads the "Production" model from MLflow on startup.
 - [ ] Implement the `/predict` endpoint with Pydantic schemas for request/response validation.
 - [ ] Add a `make api` command to the Makefile.
 
 ### Chunk 5.2: Interactive Dashboard
 
 - [ ] Add `streamlit` and `plotly` to `pyproject.toml`.
-- [ ] Create the Streamlit dashboard script (`visualization/dashboard.py`).
+- [ ] Create the Streamlit dashboard script (`dashboard/app.py`).
 - [ ] Connect to PostgreSQL to display a live KPI.
 - [ ] Add a Plotly chart for historical data trends.
 - [ ] Create an interactive form that calls the FastAPI `/predict` endpoint.
@@ -166,7 +166,7 @@ This checklist breaks down the entire project into actionable steps, following t
 ### Chunk 6.1: Unit & Integration Testing
 
 - [ ] Add `pytest` and `pytest-cov` to `pyproject.toml`.
-- [ ] Write unit tests for utility functions and feature engineering logic (`tests/`).
+- [ ] Write unit tests for utility functions and feature engineering logic (`tests/unit/`).
 - [ ] Write unit tests for Pydantic schemas.
 - [ ] Write integration tests for the FastAPI endpoints using `TestClient`.
 - [ ] Implement the `make test` command to run `pytest --cov`.
