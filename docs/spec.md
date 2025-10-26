@@ -208,7 +208,6 @@ This document defines requirements, architecture decisions, data handling, error
 
 All streaming/batch data is normalized to schema. Pydantic validation (`src/schemas/traffic_event.py`) guarantees integrity.
 
-```
 ### 6.3 Storage Strategy
 
 | Layer               | System                          | Format                |
@@ -258,9 +257,7 @@ All streaming/batch data is normalized to schema. Pydantic validation (`src/sche
 | **/health**  | `GET`  | Health check                         |
 | **/predict** | `POST` | Predict average speed given features |
 | **/metrics** | `GET`  | Simple metrics for monitoring        |
-```
 
-````
 **Startup Behavior:**
 
 - Loads `models:/traffic_speed_predictor/Production`.
@@ -359,7 +356,7 @@ make docker-logs      # View service logs
 
 # Cleanup
 make stop-all         # Stop everything
-````
+```
 
 ---
 
